@@ -4,9 +4,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.StringReader;
+import java.util.List;
 import java.util.Random;
 
-import net.sf.saxon.tinytree.TinyTree;
+import junit.framework.TestCase;
 
 import org.xml.sax.InputSource;
 
@@ -14,12 +15,14 @@ import xmlkit.XMLWriter;
 import xmlkit.Xml;
 import xmlkit.Xml.DocumentType;
 import xmlkit.XmlDocument;
-import junit.framework.TestCase;
+import xmlkit.XmlElement;
 
 public class TTXmlTest extends TestCase {
 
   private static File largeXmlFile;
-  
+
+  private XmlDocument largeDocument;
+
   static {
     largeXmlFile = createLargeXmlDataSet();
     largeXmlFile.deleteOnExit();
@@ -69,37 +72,42 @@ public class TTXmlTest extends TestCase {
   private String createSimpleXmlString() {
     StringBuilder sb = new StringBuilder();
     sb.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
-    sb.append("<Root/>");
+    sb.append("<node><node/></node>");
     return sb.toString();
   }
 
-  public void testCreateSimpleTinyTree() {
-
-    try {
-
-      String xml = createSimpleXmlString();
-      InputSource is = new InputSource();
-      is.setCharacterStream(new StringReader(xml));
-
-      TinyTree tt = Xml.getTTXmlFactory().createTinyTree(is);
-
-      assertNotNull(tt);
-
-    } catch (IOException ex) {
-      throw new RuntimeException(ex);
-    }
-  }
-  
-  public void testLoadLargeTinyTree() {
-    try {
+  public XmlDocument getLargeDocument() throws IOException {
+    if (largeDocument == null) {
       InputSource is = new InputSource();
       FileInputStream fis = new FileInputStream(largeXmlFile);
       is.setByteStream(fis);
 
-      TinyTree tt = Xml.getTTXmlFactory().createTinyTree(is);
+      largeDocument = Xml.createDocument(is, DocumentType.TINY_TREE);
+    }
 
-      assertNotNull(tt);
+    return largeDocument;
+  }
 
+  public void testIsSameNode() {
+    try {
+      
+      XmlDocument doc1 = getLargeDocument();
+      XmlDocument doc2 = getLargeDocument();
+
+      List<XmlElement> list1 = doc1.getChildElements();
+      List<XmlElement> list2 = doc2.getChildElements();
+      
+      for (int i = 0; i < list1.size(); i++) {
+      
+        assertTrue(list1.get(i) != list2.get(i));
+        
+        assertTrue(list1.get(i).isSame(list2.get(i)));
+        
+        if(i+1< list2.size()) {
+          assertTrue(!list1.get(i).isSame(list2.get(i+1)));
+        }
+      }
+      
     } catch (IOException ex) {
       throw new RuntimeException(ex);
     }
@@ -107,13 +115,15 @@ public class TTXmlTest extends TestCase {
 
   public void testLoadLargeDocument() {
     try {
-      InputSource is = new InputSource();
-      FileInputStream fis = new FileInputStream(largeXmlFile);
-      is.setByteStream(fis);
 
-      XmlDocument doc = Xml.createDocument(is, DocumentType.TINY_TREE);
+      XmlDocument doc = getLargeDocument();
 
       assertNotNull(doc);
+
+      List<?> list = doc.getChildElements();
+
+      assertEquals(1000000, list.size());
+
     } catch (IOException ex) {
       throw new RuntimeException(ex);
     }
@@ -130,6 +140,10 @@ public class TTXmlTest extends TestCase {
       XmlDocument doc = Xml.createDocument(is, DocumentType.TINY_TREE);
 
       assertNotNull(doc);
+
+      List<?> list = doc.getChildElements();
+
+      assertEquals(1, list.size());
 
     } catch (IOException ex) {
       throw new RuntimeException(ex);

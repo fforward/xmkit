@@ -1,5 +1,5 @@
 package xmlkit;
 
-public interface XmlDocument extends XmlNode {
+public interface XmlDocument extends XmlElement {
   
 }

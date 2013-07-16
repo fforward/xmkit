@@ -1,5 +1,7 @@
 package xmlkit;
 
+import java.util.List;
+
 public interface XmlElement extends XmlNode {
   
   public String getAttributeText(String key);
@@ -10,8 +12,7 @@ public interface XmlElement extends XmlNode {
   
   public String getLocalName();
   
-  public String getNamespaceUri();
+  public List<XmlNode> getChildNodes();
   
-  public String getNamespacePrefix();
-  
+  public List<XmlElement> getChildElements();
 }

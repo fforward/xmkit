@@ -1,5 +1,7 @@
 package xmlkit;
 
+import java.util.List;
+
 public interface XmlNode {
   
   public boolean isSame(XmlNode node);
@@ -16,10 +18,15 @@ public interface XmlNode {
   
   public void setText(String text);
   
-  public boolean queryBool(String path);
+  public List<XmlNode> query(String xPath);
   
-  public String queryText(String path);
+  public boolean queryBool(String xPath);
   
-  public Number queryNumber(String path);
+  public String queryText(String xPath);
   
+  public Number queryNumber(String xPath);
+  
+  public String getNamespaceUri();
+  
+  public String getNamespacePrefix();
 }
