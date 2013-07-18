@@ -1,5 +1,8 @@
 package xmlkit.tiny;
 
+import static net.sf.saxon.om.Axis.ATTRIBUTE;
+import static net.sf.saxon.om.Axis.CHILD;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -9,10 +12,14 @@ import net.sf.saxon.om.NodeInfo;
 import net.sf.saxon.om.SequenceIterator;
 import net.sf.saxon.pattern.NodeKindTest;
 import net.sf.saxon.tinytree.TinyElementImpl;
+import net.sf.saxon.trans.XPathException;
 import xmlkit.XmlElement;
 import xmlkit.XmlNode;
 
-public class TTElement extends TTNode implements XmlElement {
+public class TTElement extends TTNode 
+  implements XmlElement {
+
+
 
   public TTElement(TinyElementImpl impl) {
     super(impl);
@@ -23,13 +30,8 @@ public class TTElement extends TTNode implements XmlElement {
   }
   
   @Override
-  public TinyElementImpl getNodeInfo() {
-    return (TinyElementImpl)super.getNodeInfo();
-  }
-
-  @Override
   public String getAttributeText(String name) {
-    AxisIterator atts = getNodeInfo().iterateAxis(Axis.ATTRIBUTE);
+    AxisIterator atts = super.getNodeInfo().iterateAxis(ATTRIBUTE);
     while (true) {
       NodeInfo att = (NodeInfo)atts.next();
       if (att == null) {
@@ -50,50 +52,85 @@ public class TTElement extends TTNode implements XmlElement {
   }
 
   @Override
-  public String getQualifiedName() {
-    return getNodeInfo().getDisplayName();
-  }
-
-  @Override
-  public String getLocalName() {
-    return getNodeInfo().getLocalPart();
-  }
-
-  @Override
   public List<XmlElement> getChildElements() {
-    List<XmlElement> nodes = new ArrayList<XmlElement>(10);
-    try {
-      SequenceIterator iter = getNodeInfo().iterateAxis(Axis.CHILD, 
-          NodeKindTest.ELEMENT);
-      
-      while (true) {
-        NodeInfo node = (NodeInfo) iter.next();
-        if (node == null)
-          break;
-        nodes.add((XmlElement)TTNode.wrap(node));
-      }
-    } catch (net.sf.saxon.trans.XPathException err) {
-      return null;
-    }
-
-    return nodes;
+    SequenceIterator iter = super.getNodeInfo().iterateAxis(CHILD, NodeKindTest.ELEMENT);
+    return adaptSequenceIterator(iter, XmlElement.class);
   }
 
   @Override
   public List<XmlNode> getChildNodes() {
-    List<XmlNode> nodes = new ArrayList<XmlNode>(10);
+    SequenceIterator iter = super.getNodeInfo().iterateAxis(CHILD);
+    return adaptSequenceIterator(iter, XmlNode.class);
+  }
+  
+  private <E extends XmlNode> List<E> 
+    adaptSequenceIterator(SequenceIterator it, Class<E> type) {
     try {
-      SequenceIterator iter = getNodeInfo().iterateAxis(Axis.CHILD);
+      List<E> nodes = new ArrayList<E>(10);
       while (true) {
-        NodeInfo node = (NodeInfo) iter.next();
-        if (node == null)
+        NodeInfo node = (NodeInfo) it.next();
+        if (node == null) {
           break;
-        nodes.add(TTNode.wrap(node));
+        }
+        
+        nodes.add((E)TTNode.wrap(node));
       }
+      
+      return nodes;
+      
     } catch (net.sf.saxon.trans.XPathException err) {
       return null;
     }
+  }
 
-    return nodes;
+  @Override
+  public boolean hasChildNodes() {
+    try {
+    SequenceIterator iter = super.getNodeInfo().iterateAxis(CHILD);
+      return iter.next()!=null;
+    } catch (XPathException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  @Override
+  public List<XmlNode> getAttributes() {
+    SequenceIterator iter = super.getNodeInfo().iterateAxis(Axis.CHILD, NodeKindTest.ATTRIBUTE);
+    return adaptSequenceIterator(iter, XmlNode.class);
+  }
+
+  @Override
+  public void removeAttribute(String name) {
+    throwUpdateError();
+  }
+
+  @Override
+  public XmlNode replaceChild(XmlNode old, XmlNode n) {
+    throwUpdateError();
+    return null;
+  }
+
+  @Override
+  public void appendText(String text) {
+    throwUpdateError();
+  }
+
+  @Override
+  public XmlNode appendChild(XmlNode n) {
+    throwUpdateError();
+    return null;
+  }
+
+  @Override
+  public XmlNode removeChild(XmlNode n) {
+    throwUpdateError();
+    return null;
+  }
+
+  @Override
+  public XmlElement appendElement(String name) {
+    throwUpdateError();
+    return null;
+    
   }
 }

@@ -1,17 +1,26 @@
 package xmlkit.tiny;
 
+import java.io.OutputStream;
+import java.io.StringWriter;
 import java.util.AbstractList;
 import java.util.List;
+import java.util.Properties;
 
+import javax.xml.transform.Result;
+import javax.xml.transform.stream.StreamResult;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 
 import net.sf.saxon.om.Axis;
+import net.sf.saxon.om.AxisIterator;
 import net.sf.saxon.om.DocumentInfo;
 import net.sf.saxon.om.NamespaceConstant;
 import net.sf.saxon.om.NodeInfo;
+import net.sf.saxon.pattern.NodeKindTest;
+import net.sf.saxon.query.QueryResult;
 import net.sf.saxon.tinytree.TinyDocumentImpl;
 import net.sf.saxon.tinytree.TinyElementImpl;
+import net.sf.saxon.trans.XPathException;
 import net.sf.saxon.type.Type;
 import xmlkit.Xml;
 import xmlkit.XmlDocument;
@@ -23,14 +32,18 @@ public class TTNode implements XmlNode {
   protected final NodeInfo nodeInfo;
 
   public TTNode(NodeInfo nodeInfo) {
-
-    assert nodeInfo != null;
+    if(nodeInfo == null) throw new IllegalArgumentException("nodeInfo cannot be null");
 
     this.nodeInfo = nodeInfo;
   }
 
   public NodeInfo getNodeInfo() {
     return nodeInfo;
+  }
+  
+  @Override
+  public String getName() {
+    return getNodeInfo().getLocalPart();
   }
 
   @Override
@@ -82,7 +95,7 @@ public class TTNode implements XmlNode {
       return (XmlNode) (new TTElement((TinyElementImpl) nodeInfo));
     }
 
-    return null;
+    return nodeInfo != null ? new TTNode(nodeInfo) : null;
   }
 
   protected static void throwUpdateError() {
@@ -94,9 +107,9 @@ public class TTNode implements XmlNode {
   public XmlElement getRootElement() {
 
     DocumentInfo di = nodeInfo.getDocumentRoot();
-    TTDocument doc = (TTDocument) TTNode.wrap(di);
-
-    return doc.getRootElement();
+    AxisIterator ax = di.iterateAxis(Axis.CHILD, NodeKindTest.ELEMENT);
+    return (XmlElement)TTNode.wrap((NodeInfo)ax.next());
+  
   }
 
   @Override
@@ -181,6 +194,81 @@ public class TTNode implements XmlNode {
     } catch (XPathExpressionException e) {
       throw new RuntimeException(e);
     }
+  }
+  
+  @Override
+  public XmlElement queryElement(String xPath) {
+    return (XmlElement)queryNode(xPath);
+  }
 
+  @Override
+  public XmlNode queryNode(String xPath) {
+    try {
+      return TTNode.wrap((NodeInfo)Xml.evalXPath(xPath, getNodeInfo(),
+          XPathConstants.NODE));
+    } catch (XPathExpressionException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  @Override
+  public String toXml() {
+    return toXml(false);
+  }
+  
+  @Override
+  public String toXml(boolean xmlDecl) {
+    StringWriter sw = new StringWriter();
+    
+    
+    serialize(getNodeInfo(), new StreamResult(sw), xmlDecl);
+    return sw.toString();
+  }
+  
+  private final Result serialize(NodeInfo ni, Result result, boolean decl) {
+
+    try {
+      Properties props = new Properties();
+      props.setProperty("method", "xml");
+      props.setProperty("indent", "yes");
+      props.setProperty("omit-xml-declaration", decl ? "no" : "yes");
+      QueryResult.serialize(ni, result, props);
+      return result;
+    } catch (XPathException e) {
+      throw new RuntimeException(e);
+    }
+  }
+  
+  @Override
+  public XmlNode getParent() {
+    return TTNode.wrap(getNodeInfo().getParent());
+  }
+
+  @Override
+  public boolean isAttribute() {
+    return getNodeInfo().getNodeKind()  == Type.ATTRIBUTE;
+  }
+
+  @Override
+  public boolean isText() {
+    return getNodeInfo().getNodeKind()  == Type.TEXT;
+  }
+  
+  
+
+  @Override
+  public OutputStream toXml(OutputStream os, boolean xmlDecl) {
+    toXml(new StreamResult(os), xmlDecl);
+    return os;
+  }
+  
+  private final void toXml(StreamResult r, boolean xmlDecl) {
+    Xml.serialize(getNodeInfo(), r, xmlDecl);
+  }
+  
+  @Override
+  public TTNode copy() {
+    throwUpdateError();
+    return null;
   }
 }

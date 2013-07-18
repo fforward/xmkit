@@ -24,7 +24,7 @@ public class TTXmlFactory implements XmlFactory {
     globalConfiguration = new Configuration();
   }
 
-  public TinyDocumentImpl createTinyDocumentImpl(InputSource source) throws IOException {
+  public static TinyDocumentImpl createTinyDocumentImpl(InputSource source) throws IOException {
     try {
       XMLReader reader = Xml.createXmlReader();
       TinyBuilder tb = new TinyBuilder();
@@ -57,7 +57,7 @@ public class TTXmlFactory implements XmlFactory {
     return globalConfiguration;
   }
 
-  private ReceivingContentHandler getReceivingContentHandler() {
+  private static ReceivingContentHandler getReceivingContentHandler() {
 
     ReceivingContentHandler r = new ReceivingContentHandler();
     return r;
