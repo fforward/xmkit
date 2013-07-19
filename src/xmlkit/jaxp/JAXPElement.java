@@ -15,6 +15,10 @@ import xmlkit.XmlNode;
 public class JAXPElement extends JAXPNode 
   implements XmlElement {
   
+  protected JAXPElement(org.w3c.dom.Document dom) {
+    super(dom);
+  }
+  
   public JAXPElement(org.w3c.dom.Element element) {
     super(element);
   }

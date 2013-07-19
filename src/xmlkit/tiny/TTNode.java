@@ -271,4 +271,9 @@ public class TTNode implements XmlNode {
     throwUpdateError();
     return null;
   }
+  
+  @Override
+  public int hashCode() {
+    return getNodeInfo().hashCode();
+  }
 }

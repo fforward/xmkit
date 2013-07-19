@@ -27,7 +27,6 @@ import net.sf.saxon.Configuration;
 import net.sf.saxon.FeatureKeys;
 
 import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.XMLReaderFactory;
 
@@ -128,15 +127,28 @@ public class Xml {
     return tXmlReader.get();
   }
 
-  public static org.w3c.dom.Document createW3CDocument(InputSource is)
-      throws IOException {
+  public static org.w3c.dom.Document createW3CDocument() {
     try {
-      return createDocumentBuilder().parse(is);
-    } catch (SAXException e) {
-      throw new IOException(e);
-    } catch (ParserConfigurationException e) {
+      return createW3CDocument(null);
+    } catch (IOException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  public static org.w3c.dom.Document createW3CDocument(InputSource is)
+      throws IOException {
+
+    try {
+      if (is != null) {
+        return createDocumentBuilder().parse(is);
+      }
+
+      return createDocumentBuilder().newDocument();
+
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
+
   }
 
   public static DocumentBuilder createDocumentBuilder()
@@ -154,6 +166,16 @@ public class Xml {
 
   public static TTXmlFactory getTTXmlFactory() {
     return new TTXmlFactory();
+  }
+
+  public static XmlDocument createDocument(DocumentType type) {
+    switch (type) {
+    case TINY_TREE:
+      return getTTXmlFactory().createDocument();
+    case JAXP_TREE:
+    default:
+      return getJAXPXmlFactory().createDocument();
+    }
   }
 
   public static XmlDocument createDocument(InputSource source, DocumentType type)

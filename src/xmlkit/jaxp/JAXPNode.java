@@ -18,6 +18,7 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 
@@ -39,7 +40,10 @@ public class JAXPNode implements XmlNode {
   }
 
   public static XmlNode wrap(org.w3c.dom.Node n) {
-    
+
+    if (n == null)
+      return null;
+
     if (n instanceof org.w3c.dom.Document) {
       return new JAXPDocument((org.w3c.dom.Document) n);
     }
@@ -65,16 +69,17 @@ public class JAXPNode implements XmlNode {
   @Override
   public XmlDocument getDocument() {
     Node nn = getUnderlyingNode();
-    Document d = nn instanceof Document ? (Document)nn : nn.getOwnerDocument();
+    Document d = nn instanceof Document ? (Document) nn : nn.getOwnerDocument();
     return (XmlDocument) JAXPNode.wrap(d);
   }
 
   @Override
   public XmlElement getRootElement() {
-    
+
     Node nn = getUnderlyingNode();
-    Document d = nn instanceof Document ? (Document)nn : nn.getOwnerDocument();
-    return (XmlElement) JAXPNode.wrap(d.getDocumentElement());
+    Document d = nn instanceof Document ? (Document) nn : nn.getOwnerDocument();
+    Element el = d.getDocumentElement();
+    return (XmlElement) JAXPNode.wrap(el);
   }
 
   @Override
@@ -201,7 +206,7 @@ public class JAXPNode implements XmlNode {
     try {
       Object o = evalXPath(xPath, getUnderlyingNode(), XPathConstants.NODE);
       if (o instanceof org.w3c.dom.Node) {
-        return (XmlElement) JAXPNode.wrap((org.w3c.dom.Node) o);
+        return (XmlNode) JAXPNode.wrap((org.w3c.dom.Node) o);
       }
     } catch (XPathExpressionException e) {
       throw new RuntimeException(e);
@@ -224,14 +229,14 @@ public class JAXPNode implements XmlNode {
   public String toXml() {
     return toXml(false);
   }
-  
+
   @Override
   public String toXml(boolean xmlDecl) {
     StringWriter sw = new StringWriter();
     serialize(new DOMSource(getUnderlyingNode()), new StreamResult(sw), xmlDecl);
     return sw.toString();
   }
-  
+
   @Override
   public OutputStream toXml(OutputStream os, boolean xmlDecl) {
     serialize(new DOMSource(getUnderlyingNode()), new StreamResult(os), xmlDecl);
@@ -252,9 +257,14 @@ public class JAXPNode implements XmlNode {
   public boolean isText() {
     return getUnderlyingNode().getNodeType() == Node.TEXT_NODE;
   }
-  
+
   @Override
   public JAXPNode copy() {
-    return (JAXPNode)JAXPNode.wrap(getUnderlyingNode().cloneNode(true));
+    return (JAXPNode) JAXPNode.wrap(getUnderlyingNode().cloneNode(true));
+  }
+  
+  @Override
+  public int hashCode() {
+    return getUnderlyingNode().hashCode();
   }
 }

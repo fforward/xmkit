@@ -62,4 +62,10 @@ public class TTXmlFactory implements XmlFactory {
     ReceivingContentHandler r = new ReceivingContentHandler();
     return r;
   }
+
+  @Override
+  public XmlDocument createDocument() {
+    TTNode.throwUpdateError();
+    return null;
+  }
 }
