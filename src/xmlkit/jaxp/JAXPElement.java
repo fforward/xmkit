@@ -99,6 +99,9 @@ public class JAXPElement extends JAXPNode
     
     if(n instanceof JAXPNode) {
       Node nn = ((JAXPNode) n).getUnderlyingNode();
+      
+      ((JAXPDocument)getDocument()).getUnderlyingNode().adoptNode(nn);
+      
       return wrap(getUnderlyingNode().appendChild(nn));
     }
   
