@@ -238,23 +238,43 @@ public class JAXPNode implements XmlNode {
   public String toXml() {
     return toXml(false);
   }
+  
+  @Override
+  public String getEncoding() {
+    
+    Node n = getUnderlyingNode();
+    if(n instanceof Document) {
+      return ((Document)n).getXmlEncoding();
+    }
+    
+    return n.getOwnerDocument().getXmlEncoding();
+  }
 
   @Override
   public String toXml(boolean xmlDecl) {
     StringWriter sw = new StringWriter();
-    serialize(new DOMSource(getUnderlyingNode()), new StreamResult(sw), xmlDecl);
+    serialize(new DOMSource(getUnderlyingNode()), // source node
+        new StreamResult(sw), // result
+        xmlDecl, getEncoding()); // use xml decl, encoding
     return sw.toString();
   }
 
   @Override
   public OutputStream toXml(OutputStream os, boolean xmlDecl) {
-    serialize(new DOMSource(getUnderlyingNode()), new StreamResult(os), xmlDecl);
+    serialize(new DOMSource(getUnderlyingNode()), // source node
+        new StreamResult(os), // destination
+        xmlDecl, getEncoding()); // use xml decl, encoding
     return os;
   }
 
   @Override
   public String getName() {
     return getUnderlyingNode().getNodeName();
+  }
+  
+  @Override
+  public String getLocalName() {
+    return getUnderlyingNode().getLocalName();
   }
 
   @Override

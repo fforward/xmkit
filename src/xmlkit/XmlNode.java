@@ -19,6 +19,8 @@ public interface XmlNode {
   
   public String getName();
   
+  public String getLocalName();
+  
   public boolean isAttribute();
   
   public boolean isText();
@@ -50,4 +52,6 @@ public interface XmlNode {
   public String toXml();
   
   public XmlNode copy();
+  
+  public String getEncoding();
 }

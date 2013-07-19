@@ -1,7 +1,5 @@
 package xmlkit.jaxp;
 
-import static xmlkit.jaxp.JAXPNode.wrap;
-
 import java.util.List;
 
 import org.w3c.dom.Document;
@@ -104,7 +102,12 @@ public class JAXPDocument extends JAXPElement
   }
 
   @Override
-  public XmlElement appendElement(String name) {
-    return getRootElement().appendElement(name);
+  public XmlElement appendElement(String tagName) {
+    if(getRootElement() != null) {
+      return getRootElement().appendElement(tagName);
+    } else {
+      Element e = getUnderlyingNode().createElement(tagName);
+      return (XmlElement)JAXPNode.wrap(this.getUnderlyingNode().appendChild(e));
+    }
   }
 }

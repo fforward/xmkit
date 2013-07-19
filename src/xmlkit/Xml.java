@@ -13,6 +13,7 @@ import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
@@ -31,9 +32,11 @@ import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.XMLReaderFactory;
 
 import xmlkit.jaxp.JAXPFactory;
-import xmlkit.tiny.TTXmlFactory;
+import xmlkit.saxon.TTXmlFactory;
 
 public class Xml {
+  
+  public static String standardEncoding = "UTF-8";
 
   public static final String[] DEFAULT_TRAX_FACTORIES = {
       "net.sf.saxon.TransformerFactoryImpl",
@@ -163,7 +166,7 @@ public class Xml {
   public static JAXPFactory getJAXPXmlFactory() {
     return new JAXPFactory();
   }
-
+  
   public static TTXmlFactory getTTXmlFactory() {
     return new TTXmlFactory();
   }
@@ -287,8 +290,9 @@ public class Xml {
   }
 
   public static final void serialize(Source source, StreamResult r,
-      boolean xmlDecl) {
+      boolean xmlDecl, String encoding) {
     try {
+      
       TransformerFactory transFactory = Xml.getPreferredTransformerFactory();
       Transformer transformer;
 
@@ -297,6 +301,9 @@ public class Xml {
         transformer.setOutputProperty(OMIT_XML_DECLARATION, "yes");
       }
 
+      transformer.setOutputProperty(OutputKeys.ENCODING, encoding!=null ? encoding : 
+        Xml.standardEncoding);
+      
       transformer.transform(source, r);
 
     } catch (Exception e) {
