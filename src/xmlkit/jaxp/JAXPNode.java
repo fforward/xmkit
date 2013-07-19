@@ -17,6 +17,7 @@ import javax.xml.transform.stream.StreamResult;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 
+import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
@@ -104,7 +105,15 @@ public class JAXPNode implements XmlNode {
 
   @Override
   public XmlNode getParent() {
-    return JAXPNode.wrap(getUnderlyingNode().getParentNode());
+    
+    Node p = getUnderlyingNode().getParentNode();
+    Node n = getUnderlyingNode();
+    if(n instanceof Attr) {
+      Attr a = (Attr)n;
+      p = a.getOwnerElement();
+    }
+    
+    return JAXPNode.wrap(p);
   }
 
   protected List<XmlNode> adaptNamedNodeMap(final NamedNodeMap m) {
